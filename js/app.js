@@ -113,6 +113,7 @@ function home(s, m) {
     ${m.late ? `<a class="notice" href="#cycle">period running late, or forgot to log it? add the date →</a>` : ''}
     ${ready ? `<a class="notice" href="#vault">${plural(ready, 'sealed note')} ready to reread →</a>` : ''}
 
+<div class="cols"><div class="col">
     <article class="card mantra torn">
       <p class="label">today’s mantra</p>
       <blockquote>${esc(mantraFor(t, m.phase))}</blockquote>
@@ -129,6 +130,7 @@ function home(s, m) {
       <a class="big-btn alt" href="#vault"><span>i need to get something out</span><small>write it, seal it</small></a>
     </div>
 
+</div><div class="col">
     <article class="card torn">
       <p class="label">one small thing</p>
       <h3>${esc(practice.title)}</h3>
@@ -149,6 +151,7 @@ function home(s, m) {
     </article>
 
     ${m.cycleDay >= 18 || m.late ? `<button class="ghost wide" data-act="period-today">my period started today</button>` : ''}
+    </div></div>
   </section>`;
 }
 
@@ -168,6 +171,7 @@ function pause(s, m) {
 
     ${flash ? `<p class="flash">${esc(flash)}</p>` : ''}
 
+<div class="cols"><div class="col">
     ${due.map((u) => `
       <article class="card checkin torn">
         <p class="label">check-in · paused on ${esc(C.fmt(u.created))}, day ${u.cycleDay} (${C.PHASES[u.phase]?.short || ''})</p>
@@ -196,6 +200,7 @@ function pause(s, m) {
       ${m.pausing ? `<p class="fine">if it’s true now, it’ll still be true then. you’re not saying no, just not yet.</p>` : ''}
     </form>
 
+</div><div class="col">
     ${holding.length ? `
     <section>
       <h2>holding</h2>
@@ -217,6 +222,7 @@ function pause(s, m) {
     </section>
 
     ${patterns(s)}
+    </div></div>
   </section>`;
 }
 
@@ -267,6 +273,7 @@ function vault(s, m) {
     </header>
     ${flash ? `<p class="flash">${esc(flash)}</p>` : ''}
 
+<div class="cols"><div class="col">
     ${ready.map((v) => `
       <article class="card opened torn" id="v-${v.id}">
         <p class="label">unsealed · written ${esc(C.fmt(v.created))}${v.to ? ` · to ${esc(v.to)}` : ''}</p>
@@ -291,6 +298,7 @@ function vault(s, m) {
       <button class="primary">seal it</button>
     </form>
 
+</div><div class="col">
     ${sealed.length ? `
     <section>
       <h2>sealed</h2>
@@ -312,6 +320,7 @@ function vault(s, m) {
         </details>`).join('')}
     </section>` : ''}
 
+</div></div>
     <p class="fine center">the seal is a promise to yourself, not a locked door. notes live only on this phone.</p>
   </section>`;
 }
@@ -328,6 +337,7 @@ function letters(s, m) {
         : 'you’re in clear water. leave something for the you who’ll be on the wave. one will show up on each hard day.'}</p>
     </header>
     ${flash ? `<p class="flash">${esc(flash)}</p>` : ''}
+<div class="cols"><div class="col">
     <form class="card torn" data-form="letter">
       <p class="label">need a place to start?</p>
       <div class="chips">${LETTER_PROMPTS.map((p, i) => `<button type="button" class="chip" data-act="prompt" data-i="${i}">${esc(p)}</button>`).join('')}</div>
@@ -336,12 +346,14 @@ function letters(s, m) {
       </label>
       <button class="primary">save for the hard days</button>
     </form>
+</div><div class="col">
     ${list.map((l) => `
       <article class="card letter torn">
         <p class="label">${esc(C.fmt(l.created, { month: 'long', day: 'numeric', year: 'numeric' }))}</p>
         <p class="letter-body">${esc(l.text)}</p>
         <button class="link" data-act="letter-del" data-id="${l.id}">delete</button>
       </article>`).join('')}
+    </div></div>
   </section>`;
 }
 
@@ -361,6 +373,7 @@ function cycle(s, m) {
       <h1>your cycle</h1>
     </header>
 
+<div class="cols"><div class="col">
     <article class="card torn">
       <div class="strip" aria-label="this cycle by phase">${strip}</div>
       <div class="legend">
@@ -386,6 +399,7 @@ function cycle(s, m) {
       <p class="fine">the pause window runs from the swell until clear. these are estimates. bodies aren’t clocks.</p>
     </article>
 
+</div><div class="col">
     <form class="card torn" data-form="period">
       <label class="field">log a period start
         <input type="date" name="d" value="${t}" max="${t}" required>
@@ -400,6 +414,7 @@ function cycle(s, m) {
         <button class="x" data-act="period-del" data-d="${p}" aria-label="remove">×</button></div>`).join('')}
     </section>
 
+</div></div>
     <p class="center"><a href="#settings">settings & your data →</a></p>
   </section>`;
 }

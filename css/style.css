@@ -342,6 +342,46 @@ details[open] summary { margin-bottom: 10px; }
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---------- desktop: use the whole window ---------- */
+@media (min-width: 900px) {
+  body { padding-bottom: 56px; }
+  .top { max-width: none; padding: 18px 40px; gap: 32px; }
+  .nav {
+    position: static; height: auto; padding: 0; z-index: auto;
+    background: none; box-shadow: none;
+    flex: 1; justify-content: center; gap: 34px;
+  }
+  .nav::before { display: none; }
+  .nav a { flex: none; padding: 6px 0; font-size: .98rem; }
+  .nav a.on::after { bottom: -4px; }
+
+  .hero, .hero-welcome { max-width: none; height: min(76vh, 760px); }
+  .hero-about { max-width: none; height: min(62vh, 600px); }
+  .hero-art { object-position: center 38%; }
+  .hero-label {
+    left: max(40px, calc((100vw - 1120px) / 2 + 40px)); right: auto;
+    width: min(620px, 55vw); bottom: 52px; padding: 22px 28px 18px;
+  }
+  .hero-label h1 { font-size: clamp(3rem, 5vw, 4.4rem); }
+  .hero-label .status { font-size: 1.35rem; }
+  .credit { top: 18px; right: 24px; font-size: .78rem; }
+
+  .page { max-width: 1120px; padding: 52px 40px 16px; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 56px; align-items: start; }
+  .col > section:first-child > h2:first-child { margin-top: 0; }
+  .page-head { max-width: 720px; margin-bottom: 34px; }
+  .page-head h1 { font-size: 3.4rem; }
+
+  body[data-route="welcome"] .page,
+  body[data-route="help"] .page,
+  body[data-route="settings"] .page { max-width: 760px; }
+  .prose { max-width: 760px; }
+  .prose p { font-size: 1.22rem; }
+
+  .mantra blockquote { font-size: 2.2rem; }
+  #toast { bottom: 32px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
