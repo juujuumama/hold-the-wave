@@ -4,6 +4,7 @@ import { mantraFor, practiceFor, SCRIPTS, CATEGORIES, LETTER_PROMPTS, WEIGHT, ha
 import { mountWave } from './wave.js';
 import { calendarHTML } from './calendar.js';
 import { icon } from './icons.js';
+import { drawReport, drawExplainer } from './share.js';
 import { ART } from '../art/art.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -94,7 +95,7 @@ function toast(msg) {
 
 function welcome() {
   const t = C.today();
-  const art = ART.find((a) => a.title === 'big wave') || ART[0];
+  const art = ART.find((a) => a.title === 'airport 2') || ART[0];
   return `
   <section class="hero hero-welcome">
     ${art ? `<img class="hero-art" src="${art.src}" alt="${esc(art.title)}, from red wave by juujuumama">` : ''}
@@ -190,7 +191,7 @@ function home(s, m) {
     <div class="actions">
       <a class="big-btn stamped" href="#vault">
         <div><span>something’s pulling at me</span><small>${icon('envelope')} name it, seal it</small></div>
-        ${stamp('kitchen flood')}
+        ${stamp('bathroom mirror 2')}
       </a>
       <a class="big-btn alt stamped" href="#lighthouse">
         <div><span>${m.pausing ? 'read the lighthouse' : 'leave a light on'}</span><small>${icon('lighthouse')} ${m.pausing ? 'from the clear-headed you' : 'for your next hard day'}</small></div>
@@ -220,6 +221,11 @@ function home(s, m) {
       ${rating === 5 ? `<p class="gentle">that sounds really hard. if you’re having thoughts of hurting yourself, please <a href="#help">reach out now</a>. you deserve support today, not just next week.</p>` : ''}
       <p class="fine">rate a couple of cycles and the app learns your personal hard days.</p>
     </article>
+
+    <a class="share-cta torn" href="#share">
+      <span class="share-ico">${icon('share')}</span>
+      <div><span>send a wave report</span><small>let the people who love you know where you are</small></div>
+    </a>
 
     ${m.cycleDay >= 18 || m.late ? `
     <article class="card torn">
@@ -554,7 +560,115 @@ function help() {
   </section>`;
 }
 
-const VIEWS = { home, vault, lighthouse, cycle, settings, about, help };
+let shareTab = 'report';
+let shareBlob = null;
+let shareTimer = 0;
+
+function stripPhase(m, d) {
+  if (d < m.last) return C.diffDays(m.last, d) <= 7 ? 'crest' : 'rising';
+  if (d < m.next || m.late) return C.phaseOn(m, d);
+  return C.diffDays(d, m.next) < 3 ? 'release' : 'calm';
+}
+
+function reportData(s, m) {
+  const t = m.on, sh = s.share;
+  const day = (d) => C.fmt(d, { weekday: 'short', month: 'short', day: 'numeric' });
+  const lede = {
+    calm: `i’m feeling like myself right now. my next hard stretch starts around ${day(m.ovulation)}.`,
+    rising: `my hard stretch is starting. things may feel bigger than they are until around ${day(m.revisit)}.`,
+    crest: m.late ? 'this is my hardest stretch, and my period is running a little late. it should ease a few days after it starts.'
+                  : `this is my hardest week. i’m not myself right now, and it should ease around ${day(m.revisit)}.`,
+    release: `the wave is going out. i’m coming back to myself. a few more gentle days, until around ${day(m.revisit)}.`,
+  }[m.phase];
+  const start = C.addDays(t, -5);
+  const days = Array.from({ length: 16 }, (_, i) => { const d = C.addDays(start, i); return { phase: stripPhase(m, d), today: d === t }; });
+  const art = ART.find((a) => a.title === sh.art) || pickArt(t, m.phase) || ART[0];
+  const rating = s.ratings[t];
+  return {
+    dateLabel: `wave report · ${C.fmt(t, { weekday: 'long', month: 'long', day: 'numeric' })}`,
+    title: C.PHASES[m.phase].name,
+    lede,
+    strip: sh.forecast ? {
+      days, left: C.fmt(start),
+      mid: `hardest: ${C.fmt(m.crestStart)}–${C.fmt(m.crestEnd)}`,
+      right: m.pausing ? `clear: ${C.fmt(m.revisit)}` : `next swell: ${C.fmt(m.ovulation)}`,
+    } : null,
+    today: sh.today && rating ? { word: WEIGHT[rating], level: [0.14, 0.32, 0.52, 0.72, 0.94][rating - 1] } : null,
+    helps: sh.helps.filter(Boolean).slice(0, 3),
+    hurts: sh.hurts.filter(Boolean).slice(0, 3),
+    art,
+  };
+}
+
+function share(s, m) {
+  const sh = s.share;
+  const report = shareTab === 'report';
+  return `
+  <section class="page">
+    <header class="page-head">
+      <p class="eyebrow">for the people who love you</p>
+      <h1>share</h1>
+      <p>made on your phone and sent the way you send any photo. you choose what’s on it, and who gets it.</p>
+    </header>
+    <div class="seg" role="tablist">
+      <button role="tab" aria-selected="${report}" class="${report ? 'on' : ''}" data-act="share-tab" data-tab="report">wave report</button>
+      <button role="tab" aria-selected="${!report}" class="${report ? '' : 'on'}" data-act="share-tab" data-tab="pmdd">what is pmdd</button>
+    </div>
+<div class="cols"><div class="col">
+    <div class="share-preview torn"><canvas id="share-canvas" width="1080" height="1350" aria-label="preview of the card"></canvas></div>
+    <div class="stack">
+      <button class="primary" data-act="share-send">${icon('share')} share</button>
+      <button class="ghost" data-act="share-save">save image</button>
+    </div>
+</div><div class="col">
+    ${report ? `
+    <form class="card torn" data-form="share-opts">
+      <p class="label">what’s on it</p>
+      <label class="check"><input type="checkbox" name="forecast" ${sh.forecast ? 'checked' : ''}> the forecast (your next hard days)</label>
+      <label class="check"><input type="checkbox" name="today" ${sh.today ? 'checked' : ''}> how heavy today is${s.ratings[m.on] ? '' : ' <span class="fine">(rate today first)</span>'}</label>
+      <label class="field">what helps <span class="fine">· one per line, up to 3</span>
+        <textarea name="helps" rows="3">${esc(sh.helps.join('\n'))}</textarea>
+      </label>
+      <label class="field">what doesn’t <span class="fine">· one per line, up to 3</span>
+        <textarea name="hurts" rows="3">${esc(sh.hurts.join('\n'))}</textarea>
+      </label>
+      <p class="label">artwork</p>
+      <div class="art-pick">
+        <label><input type="radio" name="art" value="" ${sh.art ? '' : 'checked'}><span class="auto">today’s</span></label>
+        ${ART.map((a) => `<label><input type="radio" name="art" value="${esc(a.title)}" ${sh.art === a.title ? 'checked' : ''}><img src="${a.src}" alt="${esc(a.title)}"></label>`).join('')}
+      </div>
+      <p class="fine">changes save as you go and are used every time you share.</p>
+    </form>` : `
+    <article class="card torn">
+      <p class="label">send this one once</p>
+      <p>a kind, plain explanation for someone new in your life, so you don’t have to explain it in the middle of a hard week.</p>
+      <p class="fine">it’s the same for everyone. if you’d like the wording changed, it can be.</p>
+    </article>`}
+</div></div>
+  </section>`;
+}
+
+async function drawShare() {
+  const c = $('#share-canvas'); if (!c) return;
+  const s = store.get(), m = C.model(s);
+  shareBlob = null;
+  if (shareTab === 'report') await drawReport(c, reportData(s, m));
+  else await drawExplainer(c, ART.find((a) => a.title === 'lighthouse 1') || ART[0]);
+  c.toBlob((b) => { shareBlob = b; }, 'image/png');
+}
+
+function shareName() {
+  return shareTab === 'report' ? `wave-report-${C.today()}.png` : 'what-is-pmdd.png';
+}
+
+function saveBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+const VIEWS = { home, vault, lighthouse, cycle, settings, about, help, share };
 const ALIASES = { pause: 'vault', letters: 'lighthouse' }; // old links keep working
 
 // pick (or clear) the lighthouse question without touching what's typed
@@ -608,6 +722,7 @@ function render() {
   document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('on', a.dataset.r === route));
   $('.nav').hidden = needsSetup;
 
+  if (route === 'share') drawShare();
   const cv = $('#wave');
   if (cv) stopWave = mountWave(cv, route === 'welcome' ? 0.55 : m ? m.intensity : 0.3);
   if (route !== lastRoute) { window.scrollTo(0, 0); view.focus({ preventScroll: true }); }
@@ -635,6 +750,21 @@ const actions = {
     if (!res.marks.length) { go('home'); return; }
     toast(res.msg);
     render();
+  },
+  'share-tab'(el) { shareTab = el.dataset.tab; render(); },
+  'share-send'() {
+    if (!shareBlob) { toast('one moment, still drawing…'); return; }
+    const file = new File([shareBlob], shareName(), { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).catch((e) => { if (e.name !== 'AbortError') saveBlob(shareBlob, shareName()); });
+    } else {
+      saveBlob(shareBlob, shareName());
+      toast('saved. send it from your photos or downloads.');
+    }
+  },
+  'share-save'() {
+    if (!shareBlob) { toast('one moment, still drawing…'); return; }
+    saveBlob(shareBlob, shareName());
   },
   'cal-prev'(el) { stepCal(el, 1); },
   'cal-next'(el) { stepCal(el, -1); },
@@ -766,7 +896,22 @@ document.addEventListener('submit', (e) => {
   forms[f.dataset.form]?.(f);
 });
 
+function onShareOpts(f) {
+  const lines = (v) => v.split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 3);
+  store.update((s) => {
+    s.share.forecast = f.forecast.checked;
+    s.share.today = f.today.checked;
+    s.share.helps = lines(f.helps.value);
+    s.share.hurts = lines(f.hurts.value);
+    s.share.art = (f.querySelector('input[name="art"]:checked') || {}).value || '';
+  });
+  clearTimeout(shareTimer);
+  shareTimer = setTimeout(drawShare, 250);
+}
+
 document.addEventListener('input', (e) => {
+  const sf = e.target.closest?.('[data-form="share-opts"]');
+  if (sf) onShareOpts(sf);
   const out = e.target.dataset?.out;
   if (out) $('#' + out).textContent = e.target.value;
 });

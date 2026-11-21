@@ -417,6 +417,32 @@ details[open] summary { margin-bottom: 10px; }
   @keyframes lap { to { -webkit-mask-position: 24px 0; mask-position: 24px 0; } }
 }
 
+/* ---------- share ---------- */
+.share-cta {
+  display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink);
+  background: var(--card); padding: 16px 18px; margin: 0 0 26px; box-shadow: var(--shadow);
+}
+.share-cta span:not(.share-ico) { display: block; font-family: var(--display); font-style: italic; font-size: 1.2rem; }
+.share-cta small { display: block; color: var(--muted); font-size: .86rem; }
+.share-ico { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--pink-pale); color: var(--crimson-deep); }
+@media (prefers-color-scheme: dark) { .share-ico { color: var(--pink); } }
+.share-ico .ico { width: 24px; height: 24px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0 0 22px; border: 1.5px solid var(--ink); border-radius: 2px; }
+.seg button { background: none; border: 0; padding: 11px 6px; font-family: var(--type); font-size: .92rem; color: var(--ink); }
+.seg button.on { background: var(--ink); color: var(--paper); }
+.share-preview { background: var(--card); padding: 10px; margin: 0 0 18px; box-shadow: var(--shadow); }
+.share-preview canvas { display: block; width: 100%; height: auto; }
+.primary .ico { width: 18px; height: 18px; vertical-align: -3px; margin-right: 4px; }
+.check { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 12px; font-size: .95rem; }
+.check input { width: 20px; height: 20px; accent-color: var(--crimson); margin-top: 1px; flex: none; }
+.art-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px; margin: 0 0 12px; }
+.art-pick label { position: relative; cursor: pointer; }
+.art-pick input { position: absolute; opacity: 0; }
+.art-pick img, .art-pick .auto { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 2px; outline: 2px solid transparent; outline-offset: 2px; }
+.art-pick .auto { display: grid; place-items: center; background: var(--paper); border: 1.5px dashed var(--line); font-family: var(--type); font-size: .72rem; color: var(--muted); }
+.art-pick input:checked + img, .art-pick input:checked + .auto { outline-color: var(--crimson); }
+.art-pick input:focus-visible + img, .art-pick input:focus-visible + .auto { outline-color: var(--ink); }
+
 /* ---------- cycle strip ---------- */
 .strip { display: flex; gap: 2px; height: 46px; align-items: flex-end; margin-bottom: 10px; }
 .strip .d { flex: 1; border-radius: 1px; position: relative; }

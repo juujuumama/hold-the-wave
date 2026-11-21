@@ -4,6 +4,11 @@ const KEY = 'hold-the-wave:v1';
 const blank = () => ({
   version: 1,
   settings: { cycleLength: 28, lutealLength: 14, periodLength: 5 },
+  share: {       // what goes on the wave report card
+    today: true, forecast: true, art: '',
+    helps: ['food, without asking', 'a hug, or just being near', 'patience if i go quiet'],
+    hurts: ['“is it that time?”', 'big talks this week', 'trying to fix it'],
+  },
   periods: [],   // ['YYYY-MM-DD', ...] period start dates
   ratings: {},   // { 'YYYY-MM-DD': 1..5 }  how heavy the day felt
   urges: [],     // everything sealed in the vault: decisions on hold, plus any words written with them
@@ -17,7 +22,7 @@ export function load() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { saved = null; }
   const b = blank();
-  state = saved ? { ...b, ...saved, settings: { ...b.settings, ...(saved.settings || {}) } } : b;
+  state = saved ? { ...b, ...saved, settings: { ...b.settings, ...(saved.settings || {}) }, share: { ...b.share, ...(saved.share || {}) } } : b;
   migrate(state);
   return state;
 }
@@ -54,7 +59,7 @@ export function importJSON(text) {
   const data = JSON.parse(text);
   if (!data || !Array.isArray(data.periods)) throw new Error('that file doesn’t look like a hold the wave backup');
   const b = blank();
-  state = { ...b, ...data, settings: { ...b.settings, ...(data.settings || {}) } };
+  state = { ...b, ...data, settings: { ...b.settings, ...(data.settings || {}) }, share: { ...b.share, ...(data.share || {}) } };
   delete state.app; delete state.exported;
   migrate(state);
   save();
