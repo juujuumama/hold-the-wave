@@ -1,5 +1,5 @@
 // offline support. bump VERSION whenever app files change so phones pick up the update.
-const VERSION = 'htw-v7';
+const VERSION = 'htw-v8';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/cycle.js', 'js/content.js', 'js/wave.js', 'js/calendar.js', 'art/art.js',

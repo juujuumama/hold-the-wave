@@ -15,6 +15,7 @@ let stopWave = null;
 let lastRoute = null;
 let practiceOffset = 0;
 let flash = null; // one-time message shown at the top of the next render
+let chosenPrompt = null; // lighthouse question being answered
 let draft = new Set(); // period starts picked during setup, before saving
 const calOffset = { welcome: 0, cycle: 0 }; // months back from now
 
@@ -29,6 +30,19 @@ function addPeriodNear(s, d) {
   s.periods = s.periods.filter((p) => Math.abs(C.diffDays(p, d)) > 7);
   s.periods.push(d);
   s.periods = C.sortedPeriods(s.periods);
+}
+
+// a lighthouse note: the question it answers (if any) and the words.
+// older notes had the question pasted into the text, so split it back out.
+function noteParts(l) {
+  if (l.prompt) return { prompt: l.prompt, body: l.text };
+  const p = LETTER_PROMPTS.find((q) => l.text.startsWith(q));
+  return p ? { prompt: p, body: l.text.slice(p.length).trim() } : { prompt: null, body: l.text };
+}
+
+function noteHTML(l) {
+  const { prompt, body } = noteParts(l);
+  return `${prompt ? `<p class="note-q">${esc(prompt)}</p>` : ''}${body ? `<p class="letter-body">${esc(body)}</p>` : ''}`;
 }
 
 function pickArt(date, phase) {
@@ -134,7 +148,7 @@ function home(s, m) {
     ${letter ? `
     <article class="card letter torn">
       <p class="label">from the lighthouse · ${esc(C.fmt(letter.created))}</p>
-      <p class="letter-body">${esc(letter.text)}</p>
+      ${noteHTML(letter)}
     </article>` : ''}
 
     <div class="actions">
@@ -316,7 +330,7 @@ function patterns(s) {
 }
 
 function lighthouse(s, m) {
-  const list = [...s.letters].sort((a, b) => b.created.localeCompare(a.created));
+  const list = [...s.letters].reverse().sort((a, b) => b.created.localeCompare(a.created)); // newest first, even on the same day
   const art = ART.find((a) => a.title === 'lighthouse 1');
   return `
   <section class="page">
@@ -331,19 +345,23 @@ function lighthouse(s, m) {
 <div class="cols"><div class="col">
     ${art ? `<figure class="art-card torn"><img src="${art.src}" alt="lighthouse 1, from red wave by juujuumama"><figcaption>lighthouse 1 · red wave, 2026</figcaption></figure>` : ''}
     <form class="card torn" data-form="letter">
-      <p class="label">need a place to start?</p>
-      <div class="chips">${LETTER_PROMPTS.map((p, i) => `<button type="button" class="chip" data-act="prompt" data-i="${i}">${esc(p)}</button>`).join('')}</div>
-      <label class="field">your note
+      <p class="label">need a place to start? pick a question (optional)</p>
+      <div class="chips">${LETTER_PROMPTS.map((p, i) => `<button type="button" class="chip${chosenPrompt === p ? ' on' : ''}" data-act="prompt" data-i="${i}" aria-pressed="${chosenPrompt === p}">${esc(p)}</button>`).join('')}</div>
+      <div class="answering" id="answering"${chosenPrompt ? '' : ' hidden'}>
+        <p class="note-q" id="answering-q">${esc(chosenPrompt || '')}</p>
+        <button type="button" class="link" data-act="prompt-clear">clear question</button>
+      </div>
+      <label class="field"><span id="note-label">${chosenPrompt ? 'your answer' : 'your note'}</span>
         <textarea name="text" rows="6" required placeholder="dear me, out on the wave…"></textarea>
       </label>
       <button class="primary">leave the light on</button>
     </form>
 </div><div class="col">
-    ${list.length ? '' : '<p class="fine">no notes yet. the first one you write will be waiting for you on your next hard day.</p>'}
+    ${list.length ? `<h2 class="col-head">your notes</h2>` : '<p class="fine">no notes yet. the first one you write will be waiting for you on your next hard day.</p>'}
     ${list.map((l) => `
       <article class="card letter torn">
         <p class="label">${esc(C.fmt(l.created, { month: 'long', day: 'numeric', year: 'numeric' }))}</p>
-        <p class="letter-body">${esc(l.text)}</p>
+        ${noteHTML(l)}
         <button class="link" data-act="letter-del" data-id="${l.id}">delete</button>
       </article>`).join('')}
 </div></div>
@@ -495,6 +513,22 @@ function help() {
 const VIEWS = { home, vault, lighthouse, cycle, settings, about, help };
 const ALIASES = { pause: 'vault', letters: 'lighthouse' }; // old links keep working
 
+// pick (or clear) the lighthouse question without touching what's typed
+function setPrompt(p) {
+  chosenPrompt = p;
+  document.querySelectorAll('[data-act="prompt"]').forEach((c) => {
+    const on = LETTER_PROMPTS[Number(c.dataset.i)] === p;
+    c.classList.toggle('on', on); c.setAttribute('aria-pressed', on);
+  });
+  $('#answering').hidden = !p;
+  $('#answering-q').textContent = p || '';
+  $('#note-label').textContent = p ? 'your answer' : 'your note';
+  const ta = $('[data-form="letter"] textarea');
+  ta.placeholder = p ? 'write your answer…' : 'dear me, out on the wave…';
+  ta.focus({ preventScroll: true });
+  $('#answering').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
 function refreshWelcomeCal() {
   $('#cal').innerHTML = calendarHTML({ selected: draft, offset: calOffset.welcome });
   $('#cal-count').textContent = countText(draft);
@@ -605,11 +639,10 @@ const actions = {
     navigator.clipboard?.writeText(p).then(() => toast('copied'), () => toast('couldn’t copy. press and hold to select it.'));
   },
   prompt(el) {
-    const ta = $('[data-form="letter"] textarea');
     const p = LETTER_PROMPTS[Number(el.dataset.i)];
-    ta.value = (ta.value ? ta.value.trimEnd() + '\n\n' : '') + p + '\n';
-    ta.focus();
+    setPrompt(chosenPrompt === p ? null : p);
   },
+  'prompt-clear'() { setPrompt(null); },
   'letter-del'(el) { if (confirm('delete this letter?')) { store.update((s) => { s.letters = s.letters.filter((l) => l.id !== el.dataset.id); }); render(); } },
   'period-del'(el) { if (confirm('remove this period date?')) { store.update((s) => { s.periods = s.periods.filter((p) => p !== el.dataset.d); }); render(); } },
   export() {
@@ -657,7 +690,9 @@ const forms = {
   },
   letter(f) {
     const text = f.text.value.trim(); if (!text) return;
-    store.update((s) => s.letters.push({ id: store.uid(), text, created: C.today() }));
+    const note = { id: store.uid(), text, created: C.today(), ...(chosenPrompt ? { prompt: chosenPrompt } : {}) };
+    store.update((s) => s.letters.push(note));
+    chosenPrompt = null;
     flash = 'the light is on. it’ll find you on a hard day.';
     render();
   },
