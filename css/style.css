@@ -237,6 +237,8 @@ button { cursor: pointer; }
   border: 1.5px solid var(--line); border-radius: 2px;
   padding: 11px 12px; font-size: 16px; /* 16px stops iOS zooming */
 }
+.field input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; max-width: 100%; min-height: 46px; text-align: left; }
+.field input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .field textarea { resize: vertical; font-family: var(--display); font-size: 17px; line-height: 1.5; }
 .field input:focus, .field select:focus, .field textarea:focus, .date-list input:focus { outline: 2px solid var(--crimson); outline-offset: 1px; border-color: transparent; }
 .field input[type="range"] { width: 100%; accent-color: var(--crimson); margin-top: 8px; }
@@ -312,11 +314,29 @@ details[open] summary { margin-bottom: 10px; }
 .trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .trio .ghost { padding: 12px 6px; font-size: .9rem; }
 
-/* vault: optional "say it all" section + lighthouse art */
-.say { margin: 4px 0 16px; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); padding: 10px 0 2px; }
-.say summary { font-family: var(--display); font-style: italic; font-size: 1.05rem; color: var(--crimson-deep); padding-bottom: 8px; }
-@media (prefers-color-scheme: dark) { .say summary { color: var(--pink); } }
-.say[open] summary { margin-bottom: 6px; }
+/* vault: the note you're sealing (re: / to: / body on lined paper) */
+.note-sheet {
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: 2px;
+  padding: 4px 14px 0; margin: 2px 0 18px;
+}
+.note-line {
+  display: flex; align-items: baseline; gap: 10px;
+  border-bottom: 1px solid var(--line); padding: 8px 0 4px;
+}
+.note-line span { font-family: var(--type); font-size: .85rem; color: var(--crimson-deep); flex: none; width: 2.2em; }
+@media (prefers-color-scheme: dark) { .note-line span { color: var(--pink); } }
+.note-line input {
+  flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
+  font-family: var(--display); font-size: 17px; padding: 4px 0;
+}
+.note-line input:focus, .note-body:focus { outline: none; }
+.note-sheet:focus-within { border-color: var(--crimson); }
+.note-body {
+  display: block; width: 100%; border: 0; resize: vertical; background-color: transparent; color: var(--ink);
+  font-family: var(--display); font-size: 17px; line-height: 30px; padding: 6px 0 12px; min-height: 200px;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 29px, var(--line) 29px 30px);
+  background-attachment: local; background-position: 0 5px;
+}
 .sealed-words { background: var(--card); padding: 10px 12px; }
 .art-card { margin: 0 0 26px; background: var(--card); padding: 10px 10px 8px; box-shadow: var(--shadow); transform: rotate(-.6deg); }
 .art-card img { display: block; width: 100%; height: auto; }

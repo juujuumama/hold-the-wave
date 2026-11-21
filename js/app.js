@@ -195,7 +195,7 @@ function openCard(u) {
   const vent = isVent(u);
   return `
       <article class="card checkin opened torn" id="u-${u.id}">
-        <p class="label">unsealed · held on ${esc(C.fmt(u.created))}${u.cycleDay ? `, day ${u.cycleDay}` : ''}${C.PHASES[u.phase] ? ` (${C.PHASES[u.phase].short})` : ''}</p>
+        <p class="label">✉ unsealed · held on ${esc(C.fmt(u.created))}${u.cycleDay ? `, day ${u.cycleDay}` : ''}${C.PHASES[u.phase] ? ` (${C.PHASES[u.phase].short})` : ''}</p>
         <p class="quote">“${esc(u.text)}”</p>
         ${u.words ? `
         <p class="fine">what you wanted to say${u.to ? ` to ${esc(u.to)}` : ''}:</p>
@@ -233,28 +233,26 @@ function vault(s, m) {
 
     <form class="card torn" data-form="held">
       <p class="label">what’s pulling at you?</p>
-      <label class="field">it’s about
+      <div class="note-sheet">
+        <label class="note-line"><span>re:</span>
+          <input name="text" autocomplete="off" required placeholder="i want to…" aria-label="what it’s about, in a few words">
+        </label>
+        <label class="note-line"><span>to:</span>
+          <input name="to" autocomplete="off" placeholder="anyone? (optional)" aria-label="who it’s for (optional)">
+        </label>
+        <textarea name="words" class="note-body" rows="8" aria-label="say everything (optional)"
+          placeholder="say everything you want to say, or leave this blank. no one will read it, not even you, until it opens."></textarea>
+      </div>
+      <label class="field">file it under
         <select name="cat">${CATEGORIES.map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select>
-      </label>
-      <label class="field">in a few words
-        <input name="text" autocomplete="off" required placeholder="i want to…">
       </label>
       <label class="field urgency">how urgent does it feel? <output id="urg-out">7</output>/10
         <input type="range" name="urgency" min="1" max="10" value="7" data-out="urg-out">
       </label>
-      <details class="say" ${m.pausing ? 'open' : ''}>
-        <summary>want to say it all? write the text, the letter, the speech</summary>
-        <label class="field">to (optional)
-          <input name="to" autocomplete="off" placeholder="who it’s for">
-        </label>
-        <label class="field">say everything
-          <textarea name="words" rows="7" placeholder="no one will read this. not even you, until it opens."></textarea>
-        </label>
-      </details>
       <label class="field">sealed until
         <input type="date" name="until" value="${def}" min="${t}" required>
       </label>
-      <button class="primary">seal it</button>
+      <button class="primary">✉ seal it</button>
       <p class="fine">${m.pausing ? 'if it’s true now, it’ll still be true then. you’re not saying no, just not yet.' : 'pick today to look at it now.'}</p>
     </form>
 
@@ -263,7 +261,7 @@ function vault(s, m) {
     <section>
       <h2>sealed</h2>
       ${holding.map((u) => `
-        <div class="row-item${u.words ? ' sealed' : ''}">
+        <div class="row-item sealed">
           <div><p>${esc(u.text)}</p><p class="fine">${u.words ? `sealed note${u.to ? ` to ${esc(u.to)}` : ''} · ` : ''}opens ${esc(C.fmtLong(u.revisit))}</p></div>
           <button class="x" data-act="held-del" data-id="${u.id}" aria-label="delete without opening">×</button>
         </div>`).join('')}
@@ -730,7 +728,6 @@ document.addEventListener('change', async (e) => {
     const vent = e.target.value === 'vent';
     const f = e.target.form;
     f.querySelector('.urgency').hidden = vent;
-    if (vent) f.querySelector('.say').open = true;
     f.text.placeholder = vent ? 'what’s this about?' : 'i want to…';
   }
   if (e.target.dataset?.act !== 'import') return;
