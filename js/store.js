@@ -3,7 +3,7 @@ const KEY = 'hold-the-wave:v1';
 
 const blank = () => ({
   version: 1,
-  settings: { cycleLength: 28, lutealLength: 14 },
+  settings: { cycleLength: 28, lutealLength: 14, periodLength: 5 },
   periods: [],   // ['YYYY-MM-DD', ...] period start dates
   ratings: {},   // { 'YYYY-MM-DD': 1..5 }  how heavy the day felt
   urges: [],     // decisions that were put on pause

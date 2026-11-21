@@ -2,6 +2,7 @@ import * as store from './store.js';
 import * as C from './cycle.js';
 import { mantraFor, practiceFor, SCRIPTS, CATEGORIES, LETTER_PROMPTS, WEIGHT, hash } from './content.js';
 import { mountWave } from './wave.js';
+import { calendarHTML } from './calendar.js';
 import { ART } from '../art/art.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -14,6 +15,21 @@ let stopWave = null;
 let lastRoute = null;
 let practiceOffset = 0;
 let flash = null; // one-time message shown at the top of the next render
+let draft = new Set(); // period starts picked during setup, before saving
+const calMonths = { welcome: 12, cycle: 4 };
+
+function countText(set) {
+  const list = [...set].sort();
+  if (!list.length) return 'no dates yet. tap a day above.';
+  return `${plural(list.length, 'start date')} picked · most recent ${C.fmt(list[list.length - 1], { month: 'long', day: 'numeric' })}`;
+}
+
+// a quick "my period started" replaces any start logged within a week of it
+function addPeriodNear(s, d) {
+  s.periods = s.periods.filter((p) => Math.abs(C.diffDays(p, d)) > 7);
+  s.periods.push(d);
+  s.periods = C.sortedPeriods(s.periods);
+}
 
 function pickArt(date, phase) {
   if (!ART.length) return null;
@@ -46,12 +62,11 @@ function welcome() {
   <section class="page">
     <p class="lede">a companion for pmdd. it learns when your hardest days are coming and helps you hold off on all-or-nothing decisions until you’re yourself again.</p>
     <form class="card torn" data-form="onboard">
-      <p class="label">when did your last periods start?</p>
-      <p class="fine">add as many as you remember. more dates mean better predictions. one is enough to start.</p>
-      <div class="date-list" id="date-list">
-        <input type="date" name="d" required max="${t}" aria-label="period start date">
-      </div>
-      <button type="button" class="link" data-act="add-date">+ add another date</button>
+      <p class="label">tap the day each period started</p>
+      <p class="fine">start with the most recent one. more dates mean better predictions, and one is enough to start. if you track in another app, copy the start dates from its history. if you’re on your period now, tap the day it started.</p>
+      <div class="cal" id="cal" data-cal="welcome">${calendarHTML({ selected: draft, months: calMonths.welcome, today: t })}</div>
+      <button type="button" class="link" data-act="cal-more" data-cal="welcome">show earlier months</button>
+      <p class="cal-count" id="cal-count">${esc(countText(draft))}</p>
       <label class="field">usual cycle length, if you know it
         <span class="inline"><input type="number" name="len" value="28" min="18" max="50" inputmode="numeric"> days</span>
       </label>
@@ -150,7 +165,15 @@ function home(s, m) {
       <p class="fine">rate a couple of cycles and the app learns your personal hard days.</p>
     </article>
 
-    ${m.cycleDay >= 18 || m.late ? `<button class="ghost wide" data-act="period-today">my period started today</button>` : ''}
+    ${m.cycleDay >= 18 || m.late ? `
+    <article class="card torn">
+      <p class="label">did your period start?</p>
+      <div class="trio">
+        <button class="ghost" data-act="period-on" data-ago="0">today</button>
+        <button class="ghost" data-act="period-on" data-ago="1">yesterday</button>
+        <a class="ghost" href="#cycle">another day</a>
+      </div>
+    </article>` : ''}
     </div></div>
   </section>`;
 }
@@ -385,7 +408,8 @@ function cycle(s, m) {
         : `using a ${m.length}-day cycle until you log a second period.`}
         ${m.crestWin.learned
           ? ` your crest is learned from your ratings: about ${-m.crestWin.from} to ${-Math.min(m.crestWin.to, -1)} days before your period.`
-          : ' the crest is estimated as the week before your period. rate your days to make it yours.'}</p>
+          : ' the crest is estimated as the week before your period. rate your days to make it yours.'}
+        ${m.spread >= 6 ? `<p class="fine">your cycles vary quite a bit (about ${m.spread} days), so your swell can arrive earlier than shown. if you feel it coming early, trust that over the calendar.</p>` : ''}
     </article>
 
     <article class="card torn">
@@ -400,17 +424,18 @@ function cycle(s, m) {
     </article>
 
 </div><div class="col">
-    <form class="card torn" data-form="period">
-      <label class="field">log a period start
-        <input type="date" name="d" value="${t}" max="${t}" required>
-      </label>
-      <button class="primary">add</button>
-    </form>
+    <article class="card torn">
+      <p class="label">tap the day each period started</p>
+      <p class="fine">tap a red day to remove it. shaded days show your usual ${s.settings.periodLength}-day period.</p>
+      <div class="cal" id="cal" data-cal="cycle">${calendarHTML({ selected: s.periods, months: calMonths.cycle, periodLength: s.settings.periodLength, today: t })}</div>
+      <button type="button" class="link" data-act="cal-more" data-cal="cycle">show earlier months</button>
+    </article>
 
     <section>
       <h2>logged</h2>
-      ${periods.map((p) => `
-        <div class="row-item"><p>${esc(C.fmt(p, { month: 'long', day: 'numeric', year: 'numeric' }))}</p>
+      ${periods.map((p, i) => `
+        <div class="row-item"><div><p>${esc(C.fmt(p, { month: 'long', day: 'numeric', year: 'numeric' }))}</p>
+        <p class="fine">${i === 0 ? `current cycle · day ${C.diffDays(t, p) + 1}` : `${C.diffDays(periods[i - 1], p)}-day cycle`}</p></div>
         <button class="x" data-act="period-del" data-d="${p}" aria-label="remove">×</button></div>`).join('')}
     </section>
 
@@ -426,6 +451,9 @@ function settings(s) {
     <form class="card torn" data-form="settings">
       <label class="field">usual cycle length (used until you log 2+ periods)
         <span class="inline"><input type="number" name="len" min="18" max="50" value="${s.settings.cycleLength}" inputmode="numeric"> days</span>
+      </label>
+      <label class="field">usual period length
+        <span class="inline"><input type="number" name="plen" min="2" max="10" value="${s.settings.periodLength}" inputmode="numeric"> days</span>
       </label>
       <label class="field">luteal phase length (usually 12–14)
         <span class="inline"><input type="number" name="luteal" min="9" max="17" value="${s.settings.lutealLength}" inputmode="numeric"> days</span>
@@ -497,6 +525,11 @@ function help() {
 
 const VIEWS = { home, pause, vault, letters, cycle, settings, about, help };
 
+function refreshWelcomeCal() {
+  $('#cal').innerHTML = calendarHTML({ selected: draft, months: calMonths.welcome });
+  $('#cal-count').textContent = countText(draft);
+}
+
 /* ---------------- render ---------------- */
 
 function render() {
@@ -507,6 +540,7 @@ function render() {
   const m = needsSetup ? null : C.model(s);
 
   if (stopWave) { stopWave(); stopWave = null; }
+  const calScroll = route === lastRoute ? $('#cal')?.scrollTop : 0;
   view.innerHTML = route === 'welcome' ? welcome() : (VIEWS[route] || home)(s, m || {});
   flash = null;
 
@@ -515,6 +549,7 @@ function render() {
   document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('on', a.dataset.r === route));
   $('.nav').hidden = needsSetup;
 
+  if (calScroll && $('#cal')) $('#cal').scrollTop = calScroll;
   const cv = $('#wave');
   if (cv) stopWave = mountWave(cv, route === 'welcome' ? 0.55 : m ? m.intensity : 0.3);
   if (route !== lastRoute) { window.scrollTo(0, 0); view.focus({ preventScroll: true }); }
@@ -529,10 +564,28 @@ function go(route, message) {
 /* ---------------- actions ---------------- */
 
 const actions = {
-  'add-date'() {
-    const inp = document.createElement('input');
-    inp.type = 'date'; inp.name = 'd'; inp.max = C.today(); inp.setAttribute('aria-label', 'period start date');
-    $('#date-list').append(inp); inp.focus();
+  'cal-toggle'(el) {
+    const d = el.dataset.d;
+    if (el.closest('[data-cal]').dataset.cal === 'welcome') {
+      draft.has(d) ? draft.delete(d) : draft.add(d);
+      refreshWelcomeCal();
+      return;
+    }
+    const s = store.get();
+    if (s.periods.includes(d)) {
+      if (!confirm(`remove the period that started ${C.fmt(d, { month: 'long', day: 'numeric' })}?`)) return;
+      store.update((st) => { st.periods = st.periods.filter((p) => p !== d); });
+      if (!store.get().periods.length) { go('home'); return; }
+    } else {
+      store.update((st) => { st.periods = C.sortedPeriods([...st.periods, d]); });
+      toast(`period start logged: ${C.fmt(d)}`);
+    }
+    render();
+  },
+  'cal-more'(el) {
+    const which = el.dataset.cal;
+    calMonths[which] += 6;
+    if (which === 'welcome') refreshWelcomeCal(); else render();
   },
   'next-practice'() { practiceOffset++; render(); },
   rate(el) {
@@ -540,10 +593,10 @@ const actions = {
     store.update((s) => { if (s.ratings[t] === n) delete s.ratings[t]; else s.ratings[t] = n; });
     render();
   },
-  'period-today'() {
-    const t = C.today();
-    store.update((s) => { if (!s.periods.includes(t)) s.periods.push(t); });
-    go('home', 'logged. the wave is going out. be gentle with yourself for a few more days.');
+  'period-on'(el) {
+    const d = C.addDays(C.today(), -Number(el.dataset.ago || 0));
+    store.update((st) => addPeriodNear(st, d));
+    go('home', `logged ${C.fmt(d, { month: 'long', day: 'numeric' })}. the wave is going out. be gentle with yourself for a few more days.`);
   },
   'urge-out'(el) {
     const o = el.dataset.o, id = el.dataset.id;
@@ -596,14 +649,15 @@ const actions = {
 
 const forms = {
   onboard(f) {
-    const dates = [...f.querySelectorAll('input[name="d"]')].map((i) => i.value).filter(Boolean);
-    if (!dates.length) return;
+    const dates = [...draft];
+    if (!dates.length) { toast('tap the day your last period started'); return; }
     const len = Number(f.len.value) || 28;
     store.update((s) => {
       s.periods = C.sortedPeriods([...s.periods, ...dates]);
       s.settings.cycleLength = Math.min(Math.max(len, 18), 50);
     });
     store.persist();
+    draft = new Set();
     go('home');
   },
   urge(f) {
@@ -632,15 +686,11 @@ const forms = {
     flash = 'saved. it’ll find you on a hard day.';
     render();
   },
-  period(f) {
-    const d = f.d.value; if (!d) return;
-    store.update((s) => { if (!s.periods.includes(d)) s.periods.push(d); });
-    toast('logged'); render();
-  },
   settings(f) {
     store.update((s) => {
       s.settings.cycleLength = Math.min(Math.max(Number(f.len.value) || 28, 18), 50);
       s.settings.lutealLength = Math.min(Math.max(Number(f.luteal.value) || 14, 9), 17);
+      s.settings.periodLength = Math.min(Math.max(Number(f.plen.value) || 5, 2), 10);
     });
     toast('saved'); render();
   },

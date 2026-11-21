@@ -285,6 +285,28 @@ output { font-family: var(--type); color: var(--crimson-deep); }
 details summary { cursor: pointer; font-family: var(--type); font-size: .9rem; }
 details[open] summary { margin-bottom: 10px; }
 
+/* ---------- tap calendar ---------- */
+.cal {
+  max-height: 380px; overflow-y: auto; overscroll-behavior: contain;
+  margin: 10px -6px 4px; padding: 0 6px;
+  border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line);
+}
+.cal-month { padding: 12px 0 6px; }
+.cal-title { font-family: var(--display); font-style: italic; font-size: 1.15rem; margin: 0 0 6px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-dow { font-family: var(--type); font-size: .7rem; color: var(--muted); text-align: center; padding-bottom: 2px; }
+.cal-day {
+  aspect-ratio: 1; min-height: 38px; border: 0; border-radius: 50%;
+  background: transparent; color: var(--ink); font-size: .95rem;
+}
+.cal-day:disabled { color: var(--line); cursor: default; }
+.cal-day.bleed { background: var(--pink-pale); border-radius: 30%; }
+.cal-day.start { background: var(--crimson); color: var(--on-crimson); font-weight: 600; }
+.cal-day.is-today { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.cal-count { font-family: var(--type); font-size: .85rem; color: var(--teal-deep); margin: 4px 0 14px; }
+.trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.trio .ghost { padding: 12px 6px; font-size: .9rem; }
+
 /* ---------- cycle strip ---------- */
 .strip { display: flex; gap: 2px; height: 46px; align-items: flex-end; margin-bottom: 10px; }
 .strip .d { flex: 1; border-radius: 1px; position: relative; }

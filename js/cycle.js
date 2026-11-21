@@ -80,7 +80,7 @@ export function model(state, on = today()) {
   const last = past[past.length - 1];
   const next = addDays(last, length);
   const cycleDay = diffDays(on, last) + 1;
-  const late = on >= next;
+  const late = on > next;
   const ovulation = addDays(next, -luteal);
   const crestStart = addDays(next, crestWin.from);
   const crestEnd = addDays(next, Math.min(crestWin.to, -1));
