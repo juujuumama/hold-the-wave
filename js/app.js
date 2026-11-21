@@ -584,8 +584,18 @@ const actions = {
   },
   'cal-more'(el) {
     const which = el.dataset.cal;
+    const firstNew = calMonths[which];
     calMonths[which] += 6;
     if (which === 'welcome') refreshWelcomeCal(); else render();
+    // jump to the months that were just added (they land at the bottom of the box)
+    const cal = $('#cal');
+    const months = cal.querySelectorAll('.cal-month');
+    const target = months[firstNew];
+    if (target) {
+      cal.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+      cal.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      toast(`now showing back to ${months[months.length - 1].querySelector('.cal-title').textContent}`);
+    }
   },
   'next-practice'() { practiceOffset++; render(); },
   rate(el) {
