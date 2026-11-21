@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>hold the wave</title>
+  <meta name="description" content="a luteal phase companion for pmdd. nothing permanent during a temporary storm.">
+  <meta name="theme-color" content="#f1e8d8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#10201f" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="hold the wave">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#home">hold the wave</a>
+    <nav class="top-links">
+      <a href="#about">about</a>
+      <a class="help-pill" href="#help">help now</a>
+    </nav>
+  </header>
+
+  <main id="view" tabindex="-1"></main>
+
+  <nav class="nav" aria-label="main">
+    <a href="#home" data-r="home">today</a>
+    <a href="#pause" data-r="pause">pause</a>
+    <a href="#vault" data-r="vault">vault</a>
+    <a href="#letters" data-r="letters">letters</a>
+    <a href="#cycle" data-r="cycle">cycle</a>
+  </nav>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <noscript><p style="padding:24px">hold the wave needs javascript turned on.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
