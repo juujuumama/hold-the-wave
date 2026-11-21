@@ -64,6 +64,7 @@ export const CATEGORIES = [
   ['body', 'change my body or appearance drastically'],
   ['quit', 'quit something i care about'],
   ['other', 'something else'],
+  ['vent', 'nothing to decide, i just need to get it out'],
 ];
 
 export const SCRIPTS = [

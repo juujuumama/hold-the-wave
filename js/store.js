@@ -6,9 +6,9 @@ const blank = () => ({
   settings: { cycleLength: 28, lutealLength: 14, periodLength: 5 },
   periods: [],   // ['YYYY-MM-DD', ...] period start dates
   ratings: {},   // { 'YYYY-MM-DD': 1..5 }  how heavy the day felt
-  urges: [],     // decisions that were put on pause
-  vault: [],     // sealed notes
-  letters: [],   // letters from clear-water you
+  urges: [],     // everything sealed in the vault: decisions on hold, plus any words written with them
+  vault: [],     // (v1 only, migrated into urges)
+  letters: [],   // lighthouse notes from the clear-headed you
 });
 
 let state = null;
@@ -18,7 +18,22 @@ export function load() {
   try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { saved = null; }
   const b = blank();
   state = saved ? { ...b, ...saved, settings: { ...b.settings, ...(saved.settings || {}) } } : b;
+  migrate(state);
   return state;
+}
+
+// v1 kept sealed notes in a separate `vault` list. they now live with held decisions.
+function migrate(s) {
+  if (!Array.isArray(s.vault) || !s.vault.length) { s.vault = []; return; }
+  for (const v of s.vault) {
+    s.urges.push({
+      id: v.id, text: v.to ? `a note to ${v.to}` : 'something i needed to say', cat: 'vent', urgency: null,
+      created: v.created, revisit: v.until, words: v.text, to: v.to || '',
+      outcome: v.reviewed ? (v.kept ? 'act' : 'release') : null,
+    });
+  }
+  s.vault = [];
+  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
 }
 
 export const get = () => state || load();
@@ -41,6 +56,7 @@ export function importJSON(text) {
   const b = blank();
   state = { ...b, ...data, settings: { ...b.settings, ...(data.settings || {}) } };
   delete state.app; delete state.exported;
+  migrate(state);
   save();
 }
 

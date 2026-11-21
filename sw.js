@@ -1,9 +1,9 @@
 // offline support. bump VERSION whenever app files change so phones pick up the update.
-const VERSION = 'htw-v4';
+const VERSION = 'htw-v5';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/cycle.js', 'js/content.js', 'js/wave.js', 'js/calendar.js', 'art/art.js',
-  'art/cover.jpg', 'art/big-wave.jpg', 'icons/icon.svg', 'icons/icon-192.png',
+  'art/cover.jpg', 'art/big-wave.jpg', 'art/lighthouse-1.jpg', 'icons/icon.svg', 'icons/icon-192.png',
 ];
 
 self.addEventListener('install', (e) => {

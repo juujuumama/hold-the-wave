@@ -308,6 +308,16 @@ details[open] summary { margin-bottom: 10px; }
 .trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .trio .ghost { padding: 12px 6px; font-size: .9rem; }
 
+/* vault: optional "say it all" section + lighthouse art */
+.say { margin: 4px 0 16px; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); padding: 10px 0 2px; }
+.say summary { font-family: var(--display); font-style: italic; font-size: 1.05rem; color: var(--crimson-deep); padding-bottom: 8px; }
+@media (prefers-color-scheme: dark) { .say summary { color: var(--pink); } }
+.say[open] summary { margin-bottom: 6px; }
+.sealed-words { background: var(--card); padding: 10px 12px; }
+.art-card { margin: 0 0 26px; background: var(--card); padding: 10px 10px 8px; box-shadow: var(--shadow); transform: rotate(-.6deg); }
+.art-card img { display: block; width: 100%; height: auto; }
+.art-card figcaption { font-family: var(--type); font-size: .74rem; color: var(--muted); padding-top: 6px; }
+
 /* ---------- cycle strip ---------- */
 .strip { display: flex; gap: 2px; height: 46px; align-items: flex-end; margin-bottom: 10px; }
 .strip .d { flex: 1; border-radius: 1px; position: relative; }

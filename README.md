@@ -7,9 +7,8 @@ it predicts your hardest days and helps you hold off on all-or-nothing decisions
 ## what it does
 
 - **today**: one red wave piece each day with a crimson tide drawn over it. the tide rises through the luteal phase and goes back out after your period starts. you also get a daily mantra, one small coping practice, and a "how heavy is today?" rating.
-- **decision pause**: name the urge (quit, leave, cut them off…). during the wave it's held until day 4 of your period, then the app asks you again with a clear head: still true, it passed, or not sure. over time, **patterns** shows which urges pass with the wave and which keep coming back in clear water.
-- **the vault**: write the text you shouldn't send, then seal it. it opens after the wave, and then you choose to keep it or release it.
-- **letters**: on good days, write to the you who'll be on the wave. one shows up on the home screen each hard day.
+- **the vault**: name what's pulling at you (quit, leave, cut them off…), and optionally write out everything you want to say: the text, the letter, the speech. it's sealed until the wave passes. when it opens you see what you wanted to do and what you wanted to say, then choose: still true, it passed, or not sure yet. there's also a "just need to get it out" option for venting with no decision attached. **patterns** shows which urges pass with the wave and which keep coming back in clear water.
+- **lighthouse**: on good days, leave a note for the you who'll be on the wave. one shows on the home screen each hard day.
 - **cycle**: predictions from your logged periods, a phase strip, and the next 3 cycles. after 2+ cycles of daily ratings it learns *your* crest instead of assuming the week before your period.
 - **help now**: 988 call/text and international helplines, one tap from every screen.
 
