@@ -1,5 +1,5 @@
 // offline support. bump VERSION whenever app files change so phones pick up the update.
-const VERSION = 'htw-v5';
+const VERSION = 'htw-v6';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/cycle.js', 'js/content.js', 'js/wave.js', 'js/calendar.js', 'art/art.js',
@@ -7,7 +7,7 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -17,7 +17,7 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// app files: network first (so updates land), falling back to cache when offline.
+// app files: network first, skipping the browser's 10-minute cache, falling back to cache when offline.
 // art + fonts: cache first, saved the first time they're seen.
 self.addEventListener('fetch', (e) => {
   const req = e.request;
@@ -30,7 +30,8 @@ self.addEventListener('fetch', (e) => {
       const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); return res;
     })));
   } else if (url.origin === location.origin) {
-    e.respondWith(fetch(req).then((res) => {
+    // no-cache: always ask the server for the newest copy, so new and old files never mix
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then((res) => {
       const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); return res;
     }).catch(() => caches.match(req).then((hit) => hit || caches.match('index.html'))));
   }
