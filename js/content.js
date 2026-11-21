@@ -84,7 +84,7 @@ export const LETTER_PROMPTS = [
   'what are you looking forward to after the tide goes out?',
 ];
 
-export const WEIGHT = { 1: 'light', 2: 'okay', 3: 'heavy', 4: 'very heavy', 5: 'underwater' };
+export const WEIGHT = { 1: 'still', 2: 'choppy', 3: 'rough', 4: 'stormy', 5: 'underwater' };
 
 export function hash(str) {
   let h = 2166136261;

@@ -3,7 +3,7 @@ import * as C from './cycle.js';
 import { mantraFor, practiceFor, SCRIPTS, CATEGORIES, LETTER_PROMPTS, WEIGHT, hash } from './content.js';
 import { mountWave } from './wave.js';
 import { calendarHTML } from './calendar.js';
-import { icon, heavyWave } from './icons.js';
+import { icon } from './icons.js';
 import { ART } from '../art/art.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -210,10 +210,11 @@ function home(s, m) {
 
     <article class="card torn">
       <p class="label">how heavy is today?</p>
-      <div class="scale" role="group" aria-label="how heavy is today">
+      <div class="gauge" role="group" aria-label="how heavy is today">
         ${[1, 2, 3, 4, 5].map((n) => `
-          <button data-act="rate" data-n="${n}" class="${rating === n ? 'on' : ''}" aria-pressed="${rating === n}">
-            ${heavyWave(n)}<small>${WEIGHT[n]}</small>
+          <button data-act="rate" data-n="${n}" class="${rating === n ? 'on' : ''}" aria-pressed="${rating === n}" aria-label="${n} of 5, ${WEIGHT[n]}">
+            <span class="bowl"><span class="water" style="--lvl:${[14, 32, 52, 72, 94][n - 1]}%"></span></span>
+            <small>${WEIGHT[n]}</small>
           </button>`).join('')}
       </div>
       ${rating === 5 ? `<p class="gentle">that sounds really hard. if you’re having thoughts of hurting yourself, please <a href="#help">reach out now</a>. you deserve support today, not just next week.</p>` : ''}

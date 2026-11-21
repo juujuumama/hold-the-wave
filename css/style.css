@@ -392,6 +392,28 @@ details[open] summary { margin-bottom: 10px; }
 .scale .heavy { width: 34px; height: 30px; color: var(--teal-deep); }
 .scale button.on .heavy { color: var(--on-crimson); }
 
+/* how heavy is today: bowls filling with water */
+.gauge { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 4px 0 12px; }
+.gauge button { background: none; border: 0; padding: 4px 0; display: grid; justify-items: center; gap: 7px; color: var(--muted); }
+.gauge .bowl {
+  position: relative; width: 50px; height: 50px; border-radius: 50%; overflow: hidden;
+  background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.gauge .water { position: absolute; left: 0; right: 0; bottom: 0; height: var(--lvl); background: color-mix(in srgb, var(--teal) 55%, var(--paper)); }
+.gauge .water::before {
+  content: ''; position: absolute; left: 0; right: 0; top: -6px; height: 8px; background: inherit;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8'%3E%3Cpath d='M0 4c3 0 3-3 6-3s3 3 6 3 3-3 6-3 3 3 6 3v4H0z'/%3E%3C/svg%3E") repeat-x 0 0 / 24px 8px; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8'%3E%3Cpath d='M0 4c3 0 3-3 6-3s3 3 6 3 3-3 6-3 3 3 6 3v4H0z'/%3E%3C/svg%3E") repeat-x 0 0 / 24px 8px;
+}
+.gauge small { font-family: var(--type); font-size: .7rem; line-height: 1; }
+.gauge button.on .bowl { box-shadow: inset 0 0 0 2px var(--crimson); }
+.gauge button.on .water { background: var(--crimson); }
+.gauge button.on small { color: var(--crimson-deep); }
+@media (prefers-color-scheme: dark) { .gauge button.on small { color: var(--pink); } }
+@media (prefers-reduced-motion: no-preference) {
+  .gauge .water::before { animation: lap 3.5s linear infinite; }
+  @keyframes lap { to { -webkit-mask-position: 24px 0; mask-position: 24px 0; } }
+}
+
 /* ---------- cycle strip ---------- */
 .strip { display: flex; gap: 2px; height: 46px; align-items: flex-end; margin-bottom: 10px; }
 .strip .d { flex: 1; border-radius: 1px; position: relative; }
