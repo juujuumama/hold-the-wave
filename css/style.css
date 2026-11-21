@@ -286,14 +286,18 @@ details summary { cursor: pointer; font-family: var(--type); font-size: .9rem; }
 details[open] summary { margin-bottom: 10px; }
 
 /* ---------- tap calendar ---------- */
-.cal {
-  position: relative;
-  max-height: 380px; overflow-y: auto; overscroll-behavior: contain;
-  margin: 10px -6px 4px; padding: 0 6px;
-  border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line);
+.cal { margin: 10px 0 4px; padding: 10px 0 4px; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.cal-title-wrap { text-align: center; }
+.cal-sub { font-family: var(--type); font-size: .72rem; color: var(--muted); margin: 0; }
+.cal-nav {
+  width: 48px; height: 48px; flex: none; border-radius: 50%;
+  border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+  font-size: 1.6rem; line-height: 1; padding-bottom: 4px;
 }
-.cal-month { padding: 12px 0 6px; }
-.cal-title { font-family: var(--display); font-style: italic; font-size: 1.15rem; margin: 0 0 6px; }
+.cal-nav:disabled { border-color: var(--line); color: var(--line); cursor: default; }
+.cal-nav:not(:disabled):active { background: var(--crimson); border-color: var(--crimson); color: var(--on-crimson); }
+.cal-title { font-family: var(--display); font-style: italic; font-size: 1.3rem; margin: 0; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .cal-dow { font-family: var(--type); font-size: .7rem; color: var(--muted); text-align: center; padding-bottom: 2px; }
 .cal-day {

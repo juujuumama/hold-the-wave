@@ -16,7 +16,7 @@ let lastRoute = null;
 let practiceOffset = 0;
 let flash = null; // one-time message shown at the top of the next render
 let draft = new Set(); // period starts picked during setup, before saving
-const calMonths = { welcome: 12, cycle: 4 };
+const calOffset = { welcome: 0, cycle: 0 }; // months back from now
 
 function countText(set) {
   const list = [...set].sort();
@@ -63,9 +63,8 @@ function welcome() {
     <p class="lede">a companion for pmdd. it learns when your hardest days are coming and helps you hold off on all-or-nothing decisions until you’re yourself again.</p>
     <form class="card torn" data-form="onboard">
       <p class="label">tap the day each period started</p>
-      <p class="fine">start with the most recent one. more dates mean better predictions, and one is enough to start. if you track in another app, copy the start dates from its history. if you’re on your period now, tap the day it started.</p>
-      <div class="cal" id="cal" data-cal="welcome">${calendarHTML({ selected: draft, months: calMonths.welcome, today: t })}</div>
-      <button type="button" class="link" data-act="cal-more" data-cal="welcome">show earlier months</button>
+      <p class="fine">use ‹ to go back a month. more dates mean better predictions, and one is enough to start. if you track in another app, copy the start dates from its history. if you’re on your period now, tap the day it started.</p>
+      <div class="cal" id="cal" data-cal="welcome">${calendarHTML({ selected: draft, offset: calOffset.welcome, today: t })}</div>
       <p class="cal-count" id="cal-count">${esc(countText(draft))}</p>
       <label class="field">usual cycle length, if you know it
         <span class="inline"><input type="number" name="len" value="28" min="18" max="50" inputmode="numeric"> days</span>
@@ -397,9 +396,8 @@ function cycle(s, m) {
 </div><div class="col">
     <article class="card torn">
       <p class="label">tap the day each period started</p>
-      <p class="fine">tap a red day to remove it. shaded days show your usual ${s.settings.periodLength}-day period.</p>
-      <div class="cal" id="cal" data-cal="cycle">${calendarHTML({ selected: s.periods, months: calMonths.cycle, periodLength: s.settings.periodLength, today: t })}</div>
-      <button type="button" class="link" data-act="cal-more" data-cal="cycle">show earlier months</button>
+      <p class="fine">use ‹ › to change months. tap a red day to remove it. shaded days show your usual ${s.settings.periodLength}-day period.</p>
+      <div class="cal" id="cal" data-cal="cycle">${calendarHTML({ selected: s.periods, offset: calOffset.cycle, periodLength: s.settings.periodLength, today: t })}</div>
     </article>
 
     <section>
@@ -498,8 +496,19 @@ const VIEWS = { home, vault, lighthouse, cycle, settings, about, help };
 const ALIASES = { pause: 'vault', letters: 'lighthouse' }; // old links keep working
 
 function refreshWelcomeCal() {
-  $('#cal').innerHTML = calendarHTML({ selected: draft, months: calMonths.welcome });
+  $('#cal').innerHTML = calendarHTML({ selected: draft, offset: calOffset.welcome });
   $('#cal-count').textContent = countText(draft);
+}
+
+function refreshCycleCal() {
+  const s = store.get();
+  $('#cal').innerHTML = calendarHTML({ selected: s.periods, offset: calOffset.cycle, periodLength: s.settings.periodLength });
+}
+
+function stepCal(el, delta) {
+  const which = el.closest('[data-cal]').dataset.cal;
+  calOffset[which] = Math.min(Math.max(calOffset[which] + delta, 0), 60);
+  if (which === 'welcome') refreshWelcomeCal(); else refreshCycleCal();
 }
 
 /* ---------------- render ---------------- */
@@ -513,7 +522,6 @@ function render() {
   const m = needsSetup ? null : C.model(s);
 
   if (stopWave) { stopWave(); stopWave = null; }
-  const calScroll = route === lastRoute ? $('#cal')?.scrollTop : 0;
   view.innerHTML = route === 'welcome' ? welcome() : (VIEWS[route] || home)(s, m || {});
   flash = null;
 
@@ -522,7 +530,6 @@ function render() {
   document.querySelectorAll('.nav a').forEach((a) => a.classList.toggle('on', a.dataset.r === route));
   $('.nav').hidden = needsSetup;
 
-  if (calScroll && $('#cal')) $('#cal').scrollTop = calScroll;
   const cv = $('#wave');
   if (cv) stopWave = mountWave(cv, route === 'welcome' ? 0.55 : m ? m.intensity : 0.3);
   if (route !== lastRoute) { window.scrollTo(0, 0); view.focus({ preventScroll: true }); }
@@ -555,21 +562,8 @@ const actions = {
     }
     render();
   },
-  'cal-more'(el) {
-    const which = el.dataset.cal;
-    const firstNew = calMonths[which];
-    calMonths[which] += 6;
-    if (which === 'welcome') refreshWelcomeCal(); else render();
-    // jump to the months that were just added (they land at the bottom of the box)
-    const cal = $('#cal');
-    const months = cal.querySelectorAll('.cal-month');
-    const target = months[firstNew];
-    if (target) {
-      cal.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
-      cal.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      toast(`now showing back to ${months[months.length - 1].querySelector('.cal-title').textContent}`);
-    }
-  },
+  'cal-prev'(el) { stepCal(el, 1); },
+  'cal-next'(el) { stepCal(el, -1); },
   'next-practice'() { practiceOffset++; render(); },
   rate(el) {
     const n = Number(el.dataset.n), t = C.today();
