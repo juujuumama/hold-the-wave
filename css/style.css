@@ -307,7 +307,14 @@ details[open] summary { margin-bottom: 10px; }
   background: transparent; color: var(--ink); font-size: .95rem;
 }
 .cal-day:disabled { color: var(--line); cursor: default; }
-.cal-day.bleed { background: var(--pink-pale); border-radius: 30%; }
+.cal-day.bleed { background: transparent; border-radius: 30%; box-shadow: inset 0 0 0 1.5px var(--pink-pale); border: 0; }
+.cal-day.range { background: var(--pink-pale); border-radius: 30%; }
+.cal-day.end { background: var(--pink); color: var(--on-crimson); font-weight: 600; }
+.cal-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--type); font-size: .72rem; color: var(--muted); margin: 8px 0 4px; }
+.cal-key i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; vertical-align: -2px; }
+.cal-key .k-start { background: var(--crimson); }
+.cal-key .k-range { background: var(--pink-pale); border-radius: 3px; }
+.cal-key .k-est { box-shadow: inset 0 0 0 1.5px var(--pink-pale); border-radius: 3px; }
 .cal-day.start { background: var(--crimson); color: var(--on-crimson); font-weight: 600; }
 .cal-day.is-today { box-shadow: inset 0 0 0 1.5px var(--ink); }
 .cal-count { font-family: var(--type); font-size: .85rem; color: var(--teal-deep); margin: 4px 0 14px; }

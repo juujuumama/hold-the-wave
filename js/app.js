@@ -21,16 +21,40 @@ let draft = new Set(); // period starts picked during setup, before saving
 const calOffset = { welcome: 0, cycle: 0 }; // months back from now
 
 function countText(set) {
-  const list = [...set].sort();
-  if (!list.length) return 'no dates yet. tap a day above.';
-  return `${plural(list.length, 'start date')} picked · most recent ${C.fmt(list[list.length - 1], { month: 'long', day: 'numeric' })}`;
+  const groups = C.groupPeriods([...set]);
+  if (!groups.length) return 'no dates yet. tap a day above.';
+  return `${plural(groups.length, 'period')} picked · most recent started ${C.fmt(groups[groups.length - 1].start, { month: 'long', day: 'numeric' })}`;
+}
+
+const rangeText = (g) => (g.end ? `${C.fmt(g.start)}–${C.fmt(g.end)}` : C.fmt(g.start));
+
+// what tapping a calendar day does: start a period, set or move its last day, or remove it.
+// returns { marks, msg }, or null if a removal wasn't confirmed.
+function tapDay(marks, d, ask) {
+  const groups = C.groupPeriods(marks);
+  const inGroup = (p, g) => p >= g.start && p <= (g.end || g.start);
+  const g = groups.find((x) => inGroup(d, x));
+  if (g && d === g.start) {
+    if (ask && !ask(`remove the period ${g.end ? rangeText(g) : `that started ${C.fmt(g.start)}`}?`)) return null;
+    return { marks: marks.filter((p) => !inGroup(p, g)), msg: 'period removed' };
+  }
+  const withoutEnd = (list, x) => list.filter((p) => !(inGroup(p, x) && p !== x.start));
+  if (g && d === g.end) return { marks: C.normalizeMarks(withoutEnd(marks, g)), msg: 'last day cleared' };
+  if (g) return { marks: C.normalizeMarks([...withoutEnd(marks, g), d]), msg: `period: ${C.fmt(g.start)}–${C.fmt(d)}` };
+  // a new day. just before a period, it becomes that period's new first day.
+  let next = [...marks, d];
+  const after = groups.find((x) => x.start > d && C.diffDays(x.start, d) < C.MAX_PERIOD_DAYS);
+  if (after && after.end && C.diffDays(after.end, d) >= C.MAX_PERIOD_DAYS) next = next.filter((p) => p !== after.end);
+  next = C.normalizeMarks(next);
+  const ng = C.groupPeriods(next).find((x) => inGroup(d, x));
+  return { marks: next, msg: ng.start === d && !ng.end ? `period start logged: ${C.fmt(d)}` : `period: ${rangeText(ng)}` };
 }
 
 // a quick "my period started" replaces any start logged within a week of it
 function addPeriodNear(s, d) {
   s.periods = s.periods.filter((p) => Math.abs(C.diffDays(p, d)) > 7);
   s.periods.push(d);
-  s.periods = C.sortedPeriods(s.periods);
+  s.periods = C.normalizeMarks(s.periods);
 }
 
 // a lighthouse note: the question it answers (if any) and the words.
@@ -83,8 +107,8 @@ function welcome() {
   <section class="page">
     <p class="lede">a companion for pmdd. it learns when your hardest days are coming and helps you hold off on all-or-nothing decisions until you’re yourself again.</p>
     <form class="card torn" data-form="onboard">
-      <p class="label">tap the day each period started</p>
-      <p class="fine">use ‹ to go back a month. more dates mean better predictions, and one is enough to start. if you track in another app, copy the start dates from its history. if you’re on your period now, tap the day it started.</p>
+      <p class="label">tap the first day of each period</p>
+      <p class="fine">tap the last day too if you know it. use ‹ to go back a month. more dates mean better predictions, and one is enough to start. if you track in another app, copy the start dates from its history. if you’re on your period now, tap the day it started.</p>
       <div class="cal" id="cal" data-cal="welcome">${calendarHTML({ selected: draft, offset: calOffset.welcome, today: t })}</div>
       <p class="cal-count" id="cal-count">${esc(countText(draft))}</p>
       <label class="field">usual cycle length, if you know it
@@ -391,7 +415,8 @@ function cycle(s, m) {
     const ph = C.phaseOn(m, d);
     return `<span class="d ${ph}${d === t ? ' today' : ''}" title="${esc(C.fmt(d))} · ${C.PHASES[ph].name}"></span>`;
   }).join('');
-  const periods = C.sortedPeriods(s.periods).reverse();
+  const groups = C.groupPeriods(s.periods).reverse();
+  const plen = C.avgPeriodLength(s.periods, s.settings.periodLength);
   return `
   <section class="page">
     <header class="page-head">
@@ -428,17 +453,17 @@ function cycle(s, m) {
 
 </div><div class="col">
     <article class="card torn">
-      <p class="label">tap the day each period started</p>
-      <p class="fine">use ‹ › to change months. tap a red day to remove it. shaded days show your usual ${s.settings.periodLength}-day period.</p>
-      <div class="cal" id="cal" data-cal="cycle">${calendarHTML({ selected: s.periods, offset: calOffset.cycle, periodLength: s.settings.periodLength, today: t })}</div>
+      <p class="label">tap the first day of each period</p>
+      <p class="fine">tap the last day too if you know it. tap a first day again to remove that period. use ‹ › to change months.</p>
+      <div class="cal" id="cal" data-cal="cycle">${calendarHTML({ selected: s.periods, offset: calOffset.cycle, periodLength: plen, today: t })}</div>
     </article>
 
     <section>
       <h2>logged</h2>
-      ${periods.map((p, i) => `
-        <div class="row-item"><div><p>${esc(C.fmt(p, { month: 'long', day: 'numeric', year: 'numeric' }))}</p>
-        <p class="fine">${i === 0 ? `current cycle · day ${C.diffDays(t, p) + 1}` : `${C.diffDays(periods[i - 1], p)}-day cycle`}</p></div>
-        <button class="x" data-act="period-del" data-d="${p}" aria-label="remove">×</button></div>`).join('')}
+      ${groups.map((g, i) => `
+        <div class="row-item"><div><p>${esc(C.fmt(g.start, { month: 'long', day: 'numeric' }))}${g.end ? `–${esc(C.fmt(g.end, g.end.slice(5, 7) === g.start.slice(5, 7) ? { day: 'numeric' } : { month: 'long', day: 'numeric' }))}` : ''}, ${g.start.slice(0, 4)}</p>
+        <p class="fine">${i === 0 ? `current cycle · day ${C.diffDays(t, g.start) + 1}` : `${C.diffDays(groups[i - 1].start, g.start)}-day cycle`}${g.end ? ` · ${C.diffDays(g.end, g.start) + 1}-day period` : ''}</p></div>
+        <button class="x" data-act="period-del" data-d="${g.start}" aria-label="remove this period">×</button></div>`).join('')}
     </section>
 
 </div></div>
@@ -551,7 +576,7 @@ function refreshWelcomeCal() {
 
 function refreshCycleCal() {
   const s = store.get();
-  $('#cal').innerHTML = calendarHTML({ selected: s.periods, offset: calOffset.cycle, periodLength: s.settings.periodLength });
+  $('#cal').innerHTML = calendarHTML({ selected: s.periods, offset: calOffset.cycle, periodLength: C.avgPeriodLength(s.periods, s.settings.periodLength) });
 }
 
 function stepCal(el, delta) {
@@ -596,19 +621,15 @@ const actions = {
   'cal-toggle'(el) {
     const d = el.dataset.d;
     if (el.closest('[data-cal]').dataset.cal === 'welcome') {
-      draft.has(d) ? draft.delete(d) : draft.add(d);
+      draft = new Set(tapDay([...draft], d).marks);
       refreshWelcomeCal();
       return;
     }
-    const s = store.get();
-    if (s.periods.includes(d)) {
-      if (!confirm(`remove the period that started ${C.fmt(d, { month: 'long', day: 'numeric' })}?`)) return;
-      store.update((st) => { st.periods = st.periods.filter((p) => p !== d); });
-      if (!store.get().periods.length) { go('home'); return; }
-    } else {
-      store.update((st) => { st.periods = C.sortedPeriods([...st.periods, d]); });
-      toast(`period start logged: ${C.fmt(d)}`);
-    }
+    const res = tapDay(store.get().periods, d, (q) => confirm(q));
+    if (!res) return;
+    store.update((st) => { st.periods = res.marks; });
+    if (!res.marks.length) { go('home'); return; }
+    toast(res.msg);
     render();
   },
   'cal-prev'(el) { stepCal(el, 1); },
@@ -659,7 +680,13 @@ const actions = {
   },
   'prompt-clear'() { setPrompt(null); },
   'letter-del'(el) { if (confirm('delete this letter?')) { store.update((s) => { s.letters = s.letters.filter((l) => l.id !== el.dataset.id); }); render(); } },
-  'period-del'(el) { if (confirm('remove this period date?')) { store.update((s) => { s.periods = s.periods.filter((p) => p !== el.dataset.d); }); render(); } },
+  'period-del'(el) {
+    const g = C.groupPeriods(store.get().periods).find((x) => x.start === el.dataset.d);
+    if (!g || !confirm(`remove the period ${rangeText(g)}?`)) return;
+    store.update((s) => { s.periods = s.periods.filter((p) => p < g.start || p > (g.end || g.start)); });
+    if (!store.get().periods.length) { go('home'); return; }
+    render();
+  },
   export() {
     const blob = new Blob([store.exportJSON()], { type: 'application/json' });
     const a = document.createElement('a');
@@ -679,7 +706,7 @@ const forms = {
     if (!dates.length) { toast('tap the day your last period started'); return; }
     const len = Number(f.len.value) || 28;
     store.update((s) => {
-      s.periods = C.sortedPeriods([...s.periods, ...dates]);
+      s.periods = C.normalizeMarks([...s.periods, ...dates]);
       s.settings.cycleLength = Math.min(Math.max(len, 18), 50);
     });
     store.persist();

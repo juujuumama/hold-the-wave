@@ -18,12 +18,34 @@ export const PHASES = {
 
 const DEFAULT_CREST = { from: -7, to: -1, learned: false }; // days relative to next period start
 
+// the raw dates you've tapped (period starts, plus optional last days)
 export function sortedPeriods(periods) {
   return [...new Set(periods)].sort();
 }
 
+// taps within 10 days of a period's first day belong to that same period:
+// the first is the start, the last is the end. so "aug 3" + "aug 8" = one period, aug 3–8.
+export const MAX_PERIOD_DAYS = 10;
+export function groupPeriods(marks) {
+  const out = [];
+  for (const d of sortedPeriods(marks)) {
+    const g = out[out.length - 1];
+    if (g && diffDays(d, g.start) < MAX_PERIOD_DAYS) g.end = d;
+    else out.push({ start: d, end: null });
+  }
+  return out;
+}
+export const periodStarts = (marks) => groupPeriods(marks).map((g) => g.start);
+// back to just a start (+ end) per period, dropping any taps in between
+export const normalizeMarks = (marks) => groupPeriods(marks).flatMap((g) => (g.end ? [g.start, g.end] : [g.start]));
+
+export function avgPeriodLength(marks, fallback = 5) {
+  const lens = groupPeriods(marks).filter((g) => g.end).map((g) => diffDays(g.end, g.start) + 1);
+  return lens.length ? Math.round(lens.reduce((a, b) => a + b, 0) / lens.length) : fallback;
+}
+
 export function averageCycle(periods, fallback = 28) {
-  const s = sortedPeriods(periods);
+  const s = periodStarts(periods);
   const diffs = [];
   for (let i = 1; i < s.length; i++) {
     const d = diffDays(s[i], s[i - 1]);
@@ -39,7 +61,7 @@ export function averageCycle(periods, fallback = 28) {
 // needs ratings in at least 2 completed cycles; finds the 7-day stretch
 // (between 14 days before and 2 days into a period) with the heaviest average.
 export function learnCrest(periods, ratings) {
-  const s = sortedPeriods(periods);
+  const s = periodStarts(periods);
   const byOffset = {};
   const cyclesWithData = new Set();
   for (let i = 1; i < s.length; i++) {
@@ -69,7 +91,7 @@ export function learnCrest(periods, ratings) {
 
 // the full picture for a given day
 export function model(state, on = today()) {
-  const periods = sortedPeriods(state.periods);
+  const periods = periodStarts(state.periods);
   const past = periods.filter((p) => p <= on);
   if (!past.length) return null;
 
@@ -140,6 +162,6 @@ export function forecast(m, cycles = 3) {
 
 // which cycle (by its start date) a date belongs to
 export function cycleOf(periods, date) {
-  const past = sortedPeriods(periods).filter((p) => p <= date);
+  const past = periodStarts(periods).filter((p) => p <= date);
   return past.length ? past[past.length - 1] : null;
 }
