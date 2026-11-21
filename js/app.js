@@ -117,6 +117,9 @@ function welcome() {
       <button class="primary">begin</button>
     </form>
     <p class="fine center">everything stays on this phone. no account, no server, no one else can see it.</p>
+    <p class="center">
+      <label class="link file">have a backup? restore it<input type="file" accept="application/json,.json" data-act="import" hidden></label>
+    </p>
     <p class="center"><a href="#about">why i made this →</a></p>
   </section>`;
 }
