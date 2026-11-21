@@ -352,6 +352,39 @@ details[open] summary { margin-bottom: 10px; }
 }
 .col-head { margin-top: 0; }
 
+/* ---------- icons + stamps ---------- */
+.ico { width: 18px; height: 18px; flex: none; vertical-align: -3px; }
+.ico.big { width: 30px; height: 30px; }
+.label.with-ico { display: flex; align-items: center; gap: 7px; }
+.notice .ico { margin-right: 4px; }
+.pause-banner { display: flex !important; align-items: center; gap: 14px; }
+.pause-banner .ico.big { color: var(--crimson-deep); }
+@media (prefers-color-scheme: dark) { .pause-banner .ico.big { color: var(--pink); } }
+.mantra { overflow: hidden; }
+.mantra-wave { position: absolute; right: -18px; bottom: -22px; width: 120px; height: 120px; opacity: .22; stroke-width: 1.2; pointer-events: none; }
+.practice { display: flex; gap: 14px; align-items: flex-start; }
+.practice-ico {
+  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--teal-pale); color: var(--teal-deep);
+}
+.practice-ico .ico { width: 28px; height: 28px; }
+.practice h3 { margin-top: 2px; }
+.big-btn.stamped { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 14px 14px 16px; }
+.big-btn small .ico { width: 15px; height: 15px; vertical-align: -2px; margin-right: 3px; }
+.stamp {
+  flex: none; width: 62px; height: 76px; padding: 5px; background: #fbf5ea; transform: rotate(4deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, radial-gradient(circle, #0000 2.1px, #000 2.5px) -4px -4px / 8px 8px;
+  -webkit-mask-composite: source-over;
+          mask: linear-gradient(#000 0 0) content-box, radial-gradient(circle, #0000 2.1px, #000 2.5px) -4px -4px / 8px 8px;
+          mask-composite: add;
+}
+.big-btn.alt .stamp { transform: rotate(-3deg); }
+.stamp img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.scale .heavy { width: 34px; height: 30px; color: var(--teal-deep); }
+.scale button.on .heavy { color: var(--on-crimson); }
+
 /* ---------- cycle strip ---------- */
 .strip { display: flex; gap: 2px; height: 46px; align-items: flex-end; margin-bottom: 10px; }
 .strip .d { flex: 1; border-radius: 1px; position: relative; }

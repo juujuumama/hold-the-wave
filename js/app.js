@@ -3,6 +3,7 @@ import * as C from './cycle.js';
 import { mantraFor, practiceFor, SCRIPTS, CATEGORIES, LETTER_PROMPTS, WEIGHT, hash } from './content.js';
 import { mountWave } from './wave.js';
 import { calendarHTML } from './calendar.js';
+import { icon, heavyWave } from './icons.js';
 import { ART } from '../art/art.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -44,6 +45,12 @@ function noteHTML(l) {
   const { prompt, body } = noteParts(l);
   return `${prompt ? `<p class="note-q">${esc(prompt)}</p>` : ''}${body ? `<p class="letter-body">${esc(body)}</p>` : ''}`;
 }
+
+const lbl = (ico, text) => `<p class="label with-ico">${icon(ico)}<span>${text}</span></p>`;
+const stamp = (title) => {
+  const a = ART.find((x) => x.title === title);
+  return a ? `<span class="stamp" aria-hidden="true"><img src="${a.src}" alt=""></span>` : '';
+};
 
 function pickArt(date, phase) {
   if (!ART.length) return null;
@@ -133,34 +140,44 @@ function home(s, m) {
     ${flash ? `<p class="flash">${esc(flash)}</p>` : ''}
     ${m.pausing ? `
       <a class="pause-banner torn" href="#vault">
-        <strong>pause window</strong>
-        <span>no life-altering decisions until ${esc(C.fmtLong(m.revisit))}. feel everything. decide later.</span>
+        ${icon('hourglass', 'ico big')}
+        <div><strong>pause window · until ${esc(C.fmtLong(m.revisit))}</strong>
+        <span>feel everything. decide later.</span></div>
       </a>` : ''}
-    ${m.late ? `<a class="notice" href="#cycle">period running late, or forgot to log it? add the date →</a>` : ''}
-    ${ready ? `<a class="notice" href="#vault">${ready === 1 ? 'something you sealed is' : `${ready} things you sealed are`} ready to open →</a>` : ''}
+    ${m.late ? `<a class="notice" href="#cycle">${icon('calendar')} period running late, or forgot to log it? add the date →</a>` : ''}
+    ${ready ? `<a class="notice" href="#vault">${icon('envelope')} ${ready === 1 ? 'something you sealed is' : `${ready} things you sealed are`} ready to open →</a>` : ''}
 
 <div class="cols"><div class="col">
     <article class="card mantra torn">
-      <p class="label">today’s mantra</p>
+      ${lbl('wave', 'today’s mantra')}
       <blockquote>${esc(mantraFor(t, m.phase))}</blockquote>
+      ${icon('wave', 'mantra-wave')}
     </article>
 
     ${letter ? `
     <article class="card letter torn">
-      <p class="label">from the lighthouse · ${esc(C.fmt(letter.created))}</p>
+      ${lbl('lighthouse', `from the lighthouse · ${esc(C.fmt(letter.created))}`)}
       ${noteHTML(letter)}
     </article>` : ''}
 
     <div class="actions">
-      <a class="big-btn" href="#vault"><span>something’s pulling at me</span><small>name it, say it, seal it until the wave passes</small></a>
-      <a class="big-btn alt" href="#lighthouse"><span>${m.pausing ? 'read the lighthouse' : 'leave a light on'}</span><small>${m.pausing ? 'notes from the clear-headed you' : 'a note for your next hard day'}</small></a>
+      <a class="big-btn stamped" href="#vault">
+        <div><span>something’s pulling at me</span><small>${icon('envelope')} name it, seal it</small></div>
+        ${stamp('kitchen flood')}
+      </a>
+      <a class="big-btn alt stamped" href="#lighthouse">
+        <div><span>${m.pausing ? 'read the lighthouse' : 'leave a light on'}</span><small>${icon('lighthouse')} ${m.pausing ? 'from the clear-headed you' : 'for your next hard day'}</small></div>
+        ${stamp('lighthouse 1')}
+      </a>
     </div>
 
 </div><div class="col">
     <article class="card torn">
       <p class="label">one small thing</p>
-      <h3>${esc(practice.title)}</h3>
-      <p>${esc(practice.body)}</p>
+      <div class="practice">
+        <span class="practice-ico">${icon(practice.icon || 'heart')}</span>
+        <div><h3>${esc(practice.title)}</h3><p>${esc(practice.body)}</p></div>
+      </div>
       <button class="link" data-act="next-practice">try a different one</button>
     </article>
 
@@ -169,7 +186,7 @@ function home(s, m) {
       <div class="scale" role="group" aria-label="how heavy is today">
         ${[1, 2, 3, 4, 5].map((n) => `
           <button data-act="rate" data-n="${n}" class="${rating === n ? 'on' : ''}" aria-pressed="${rating === n}">
-            <span>${n}</span><small>${WEIGHT[n]}</small>
+            ${heavyWave(n)}<small>${WEIGHT[n]}</small>
           </button>`).join('')}
       </div>
       ${rating === 5 ? `<p class="gentle">that sounds really hard. if you’re having thoughts of hurting yourself, please <a href="#help">reach out now</a>. you deserve support today, not just next week.</p>` : ''}
@@ -178,7 +195,7 @@ function home(s, m) {
 
     ${m.cycleDay >= 18 || m.late ? `
     <article class="card torn">
-      <p class="label">did your period start?</p>
+      ${lbl('calendar', 'did your period start?')}
       <div class="trio">
         <button class="ghost" data-act="period-on" data-ago="0">today</button>
         <button class="ghost" data-act="period-on" data-ago="1">yesterday</button>

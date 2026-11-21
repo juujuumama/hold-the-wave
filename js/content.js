@@ -37,20 +37,20 @@ export const MANTRAS = {
 
 export const PRACTICES = {
   any: [
-    { title: 'cold water', body: 'splash cold water on your face or hold something cold for 30 seconds. it slows your heart rate and gives your body a reset.' },
-    { title: 'box breathing', body: 'breathe in for 4, hold for 4, out for 4, hold for 4. do four rounds. the long exhale tells your body it’s safe.' },
-    { title: 'five things', body: 'name 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, 1 you can taste. come back to the room.' },
-    { title: 'walk it out', body: 'ten minutes outside, no destination. let your body move what your mind can’t.' },
-    { title: 'lower the bar', body: 'pick the one thing that has to happen today. everything else is optional. that’s allowed.' },
-    { title: 'eat something real', body: 'blood sugar dips make everything louder. protein and something warm, if you can.' },
-    { title: 'tell one person', body: 'text someone safe: “rough luteal day, no need to fix it, just wanted you to know.”' },
-    { title: 'shrink the window', body: 'you don’t have to get through the week. just the next hour. then the next.' },
-    { title: 'warm water', body: 'a bath or long shower. let the water be the gentle kind for a while.' },
-    { title: 'empty your head', body: 'set a timer for 5 minutes and write everything, unedited. or put it in the vault.' },
+    { title: 'cold water', icon: 'drop', body: 'splash cold water on your face or hold something cold for 30 seconds. it slows your heart rate and gives your body a reset.' },
+    { title: 'box breathing', icon: 'breath', body: 'breathe in for 4, hold for 4, out for 4, hold for 4. do four rounds. the long exhale tells your body it’s safe.' },
+    { title: 'five things', icon: 'eye', body: 'name 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, 1 you can taste. come back to the room.' },
+    { title: 'walk it out', icon: 'steps', body: 'ten minutes outside, no destination. let your body move what your mind can’t.' },
+    { title: 'lower the bar', icon: 'check', body: 'pick the one thing that has to happen today. everything else is optional. that’s allowed.' },
+    { title: 'eat something real', icon: 'bowl', body: 'blood sugar dips make everything louder. protein and something warm, if you can.' },
+    { title: 'tell one person', icon: 'message', body: 'text someone safe: “rough luteal day, no need to fix it, just wanted you to know.”' },
+    { title: 'shrink the window', icon: 'clock', body: 'you don’t have to get through the week. just the next hour. then the next.' },
+    { title: 'warm water', icon: 'bath', body: 'a bath or long shower. let the water be the gentle kind for a while.' },
+    { title: 'empty your head', icon: 'pen', body: 'set a timer for 5 minutes and write everything, unedited. or put it in the vault.' },
   ],
   calm: [
-    { title: 'write a letter', body: 'you’re clear right now. write a few lines for the you who’ll be on the wave. they’ll get it on a hard day.' },
-    { title: 'fill in your scripts', body: 'decide now what you’ll say when you need to pause a big conversation. future you won’t have to find the words.' },
+    { title: 'leave a light on', icon: 'lighthouse', body: 'you’re clear right now. write a few lines in the lighthouse for the you who’ll be on the wave. they’ll get it on a hard day.' },
+    { title: 'fill in your scripts', icon: 'message', body: 'decide now what you’ll say when you need to pause a big conversation. future you won’t have to find the words.' },
   ],
 };
 
