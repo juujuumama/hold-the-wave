@@ -788,6 +788,10 @@ window.addEventListener('hashchange', render);
 // re-render when the day changes while the app is open
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 
+// icons on the menu
+const NAV_ICONS = { home: 'wave', vault: 'envelope', lighthouse: 'lighthouse', cycle: 'moon' };
+document.querySelectorAll('.nav a').forEach((a) => a.insertAdjacentHTML('afterbegin', icon(NAV_ICONS[a.dataset.r], 'nav-ico')));
+
 store.load();
 render();
 

@@ -26,7 +26,9 @@
   --display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --type: 'Courier Prime', 'Courier New', ui-monospace, monospace;
   --body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --nav-h: 62px;
+  --nav-h: 70px;
+  --nav-bg: #b5122f;
+  --nav-ink: #fff3ea;
   color-scheme: light;
 }
 
@@ -50,6 +52,7 @@
     --tide-3: rgba(160, 14, 40, .92);
     --shadow: 0 10px 28px -16px rgba(0, 0, 0, .7);
     --grain-opacity: .12;
+    --nav-bg: #7a0c22;
     color-scheme: dark;
   }
 }
@@ -443,8 +446,8 @@ details[open] summary { margin-bottom: 10px; }
   display: flex; justify-content: space-around;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--card);
-  box-shadow: 0 -8px 24px -18px rgba(40, 20, 10, .5);
+  background: var(--nav-bg);
+  box-shadow: 0 -10px 26px -16px rgba(60, 10, 20, .55);
 }
 .nav::before {
   content: ''; position: absolute; left: 0; right: 0; top: -8px; height: 9px; background: inherit;
@@ -453,15 +456,12 @@ details[open] summary { margin-bottom: 10px; }
 }
 .nav[hidden] { display: none; }
 .nav a {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  color: var(--muted); text-decoration: none; font-size: .88rem; position: relative;
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--nav-ink); opacity: .72; text-decoration: none; font-size: .72rem; position: relative;
 }
-.nav a.on { color: var(--crimson-deep); }
-@media (prefers-color-scheme: dark) { .nav a.on { color: var(--pink); } }
-.nav a.on::after {
-  content: ''; position: absolute; bottom: 12px; left: 50%; width: 22px; height: 3px; margin-left: -11px;
-  background: var(--crimson); border-radius: 2px;
-}
+.nav-ico { width: 24px; height: 24px; padding: 3px 14px; box-sizing: content-box; border-radius: 99px; transition: background .2s ease; }
+.nav a.on { opacity: 1; }
+.nav a.on .nav-ico { background: var(--nav-ink); color: var(--nav-bg); }
 
 #toast {
   position: fixed; left: 50%; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px); z-index: 60;
@@ -481,8 +481,15 @@ details[open] summary { margin-bottom: 10px; }
     flex: 1; justify-content: center; gap: 34px;
   }
   .nav::before { display: none; }
-  .nav a { flex: none; padding: 6px 0; font-size: .98rem; }
-  .nav a.on::after { bottom: -4px; }
+  .nav a { flex: none; flex-direction: row; gap: 7px; padding: 6px 0; font-size: .98rem; color: var(--ink); opacity: .6; }
+  .nav-ico { width: 18px; height: 18px; padding: 0; }
+  .nav a.on { opacity: 1; color: var(--crimson-deep); }
+  .nav a.on .nav-ico { background: none; color: inherit; }
+  @media (prefers-color-scheme: dark) { .nav a.on { color: var(--pink); } }
+  .nav a.on::after {
+    content: ''; position: absolute; bottom: -4px; left: 50%; width: 22px; height: 3px; margin-left: -11px;
+    background: var(--crimson); border-radius: 2px;
+  }
 
   .hero, .hero-welcome { max-width: none; height: min(76vh, 760px); }
   .hero-about { max-width: none; height: min(62vh, 600px); }
